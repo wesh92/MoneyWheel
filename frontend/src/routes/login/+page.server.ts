@@ -2,7 +2,17 @@
 
 import { AuthApiError } from '@supabase/supabase-js';
 import { fail, redirect } from '@sveltejs/kit';
-import type { Actions } from './$types';
+import type { PageServerLoad, Actions } from './$types';
+
+export const load: PageServerLoad = async ({ locals: { supabase } }) => {
+	// Securely check if a user is already logged in
+	const {
+		data: { user }
+	} = await supabase.auth.getUser();
+	if (user) {
+		throw redirect(303, '/');
+	}
+};
 
 export const actions: Actions = {
 	login: async ({ request, locals: { supabase } }) => {
@@ -45,7 +55,9 @@ export const actions: Actions = {
 			});
 		}
 
-		throw redirect(303, '/');
+		return {
+			message: 'Please check your email to confirm your account before logging in.'
+		};
 	},
 	logout: async ({ locals: { supabase } }) => {
 		await supabase.auth.signOut();

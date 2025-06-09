@@ -1,26 +1,21 @@
-// frontend/src/routes/+page.server.ts
+// src/routes/+page.server.ts
+
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch }) => {
-  try {
-    // Inside Docker Compose, services can talk to each other using their service names as hostnames.
-    // The URL is http://<service-name>:<port>
-    const response = await fetch('http://backend:8080/api/v1/healthcheck');
+export const load: PageServerLoad = async ({ locals: { supabase } }) => {
+	// Securely get the user from the server
+	const {
+		data: { user }
+	} = await supabase.auth.getUser();
 
-    if (!response.ok) {
-        console.error('Backend response not OK:', response.status, await response.text());
-        return { backendStatus: null };
-    }
-    
-    const data = await response.json();
-    return {
-      backendStatus: data
-    };
+	// If the user is not logged in, redirect them to the login page
+	if (!user) {
+		throw redirect(303, '/login');
+	}
 
-  } catch (error) {
-    console.error("Failed to fetch from backend:", error);
-    return {
-        backendStatus: null
-    };
-  }
+	// Pass the secure user object to the page
+	return {
+		user
+	};
 };

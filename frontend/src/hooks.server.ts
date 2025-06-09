@@ -18,14 +18,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	});
 
-	// A helper function to get the session
-	event.locals.getSession = async () => {
-		const {
-			data: { session }
-		} = await event.locals.supabase.auth.getSession();
-		return session;
-	};
-
 	// Continue processing the request
 	return resolve(event, {
 		filterSerializedResponseHeaders(name) {
