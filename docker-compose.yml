@@ -1,0 +1,29 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # The Go Backend Service
+  backend:
+    build: ./backend
+    container_name: budget-backend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  # The SvelteKit Frontend Service
+  frontend:
+    # We will build the frontend image later. For dev, we use a node image.
+    image: node:24-alpine
+    container_name: budget-frontend
+    working_dir: /app
+    ports:
+      - "5173:5173" # Exposes the Vite dev server port
+    volumes:
+      - ./frontend:/app # Mounts your local frontend code into the container
+    env_file:
+      - ./frontend/.env
+    # Use corepack to enable pnpm, install dependencies, and run the dev server.
+    command: >
+      sh -c "corepack enable && pnpm install && pnpm run dev"
+    depends_on:
+      - backend
